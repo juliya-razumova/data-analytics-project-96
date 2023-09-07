@@ -16,7 +16,7 @@ lead_id,
 created_at,
 amount,
 closing_reason,
-status_id as status_code
+status_id
 from tab
 left join sessions
 on tab.visitor_id = sessions.visitor_id and tab.visit_date = sessions.visit_date
