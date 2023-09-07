@@ -1,19 +1,10 @@
-with ads_visit as (
+with tab as (
 select 
 visitor_id,
-max(visit_date) filter (where campaign is not null) as ads_date,
-max (visit_date) filter (where campaign is null) as organic_date
+max(visit_date) as visit_date
 from sessions s 
+where campaign is not null
 group by visitor_id
-),
-tab as (
-select 
-visitor_id,
-case
-	when ads_date is null then organic_date
-	else ads_date
-end as visit_date
-from ads_visit
 )
 select
 tab.visitor_id,
@@ -31,11 +22,5 @@ left join sessions
 on tab.visitor_id = sessions.visitor_id and tab.visit_date = sessions.visit_date
 left join leads
 on tab.visitor_id = leads.visitor_id
-order by amount desc nulls last;
-
-
-
-
-
-
+order by amount desc nulls last, visit_date, utm_source, utm_medium, utm_campaign;
 
