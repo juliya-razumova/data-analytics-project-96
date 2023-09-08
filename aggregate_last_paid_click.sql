@@ -3,7 +3,7 @@ select
 visitor_id,
 max(visit_date) as visit_date
 from sessions s 
-where medium in ('cpc', 'cpm', 'cpa', 'youtube', 'cpp', 'tg', 'social')
+where campaign is not null
 group by visitor_id
 ),
 ya as (
@@ -32,7 +32,7 @@ cast (tab.visit_date as date) as date,
 source,
 medium,
 campaign,
-count(tab.visitor_id) as visitors_count,
+count(distinct tab.visitor_id) as visitors_count,
 count(lead_id) filter (where created_at > tab.visit_date) as leads_count,
 count(lead_id) filter (where amount > 0) as purchases_count,
 sum(amount) as revenue
@@ -63,5 +63,7 @@ and medium = ya.utm_medium and campaign = ya.utm_campaign
 left join vk
 on date = vk.campaign_date and source = vk.utm_source
 and medium = vk.utm_medium and campaign = vk.utm_campaign
-order by revenue desc nulls last;
+where source in ('vk', 'yandex')
+order by revenue desc nulls last, visit_date, visitors_count desc, utm_source, utm_medium, utm_campaign
+limit 15;
 
