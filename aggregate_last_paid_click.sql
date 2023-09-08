@@ -31,16 +31,16 @@ vk as (
 
 tab1 as (
     select
-        cast(tab.visit_date as date) as date,
-        source,
-        medium,
-        campaign,
+        cast(tab.visit_date as date) as visit_date,
+        sessions.source as utm_source,
+        sessions.medium as utm_medium,
+        sessions.campaign as utm_campaign,
         count(distinct tab.visitor_id) as visitors_count,
-        count(lead_id) filter (
-            where created_at >= tab.visit_date
+        count(leads.lead_id) filter (
+            where leads.created_at >= tab.visit_date
         ) as leads_count,
-        count(lead_id) filter (where amount > 0) as purchases_count,
-        sum(amount) as revenue
+        count(leads.lead_id) filter (where leads.amount > 0) as purchases_count,
+        sum(leads.amount) as revenue
     from tab
     left join sessions
         on
@@ -48,32 +48,34 @@ tab1 as (
             and tab.visit_date = sessions.visit_date
     left join leads
         on tab.visitor_id = leads.visitor_id
-    group by date, source, medium, campaign
+    group by visit_date, utm_source, uutm_medium, utm_campaign
 )
 
 select
-    tab1.date as visit_date,
+    tab1.visit_date as visit_date,
     tab1.visitors_count,
-    tab1.source as utm_source,
-    tab1.medium as utm_medium,
-    tab1.campaign as utm_campaign,
+    tab1.utm_source,
+    tab1.utm_medium,
+    tab1.utm_campaign,
     tab1.leads_count,
     tab1.purchases_count,
     tab1.revenue,
     case
-        when source = 'yandex' then ya.total_cost
-        when source = 'vk' then vk.total_cost
+        when tab1.utm_source = 'yandex' then ya.total_cost
+        when tab1.utm_source = 'vk' then vk.total_cost
     end as total_cost
 from tab1
 left join ya
     on
-        date = ya.campaign_date and source = ya.utm_source
-        and medium = ya.utm_medium and campaign = ya.utm_campaign
+        tab1.visit_date = ya.campaign_date and tab1.utm_source = ya.utm_source
+        and tab1.utm_medium = ya.utm_medium
+        and tab1.utm_campaign = ya.utm_campaign
 left join vk
     on
-        date = vk.campaign_date and source = vk.utm_source
-        and medium = vk.utm_medium and campaign = vk.utm_campaign
-where source != 'admitad'
+        tab1.visit_date = vk.campaign_date and tab1.utm_source = vk.utm_source
+        and tab1.utm_medium = vk.utm_medium
+        and tab1.utm_campaign = vk.utm_campaign
+where tab1.utm_source != 'admitad'
 order by
     revenue desc nulls last,
     visitors_count desc,
@@ -82,3 +84,4 @@ order by
     utm_medium asc,
     utm_campaign asc
 limit 15;
+
