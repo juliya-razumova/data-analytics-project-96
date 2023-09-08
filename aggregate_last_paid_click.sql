@@ -48,7 +48,7 @@ tab1 as (
             and tab.visit_date = sessions.visit_date
     left join leads
         on tab.visitor_id = leads.visitor_id
-    group by visit_date, utm_source, uutm_medium, utm_campaign
+    group by visit_date, utm_source, utm_medium, utm_campaign
 )
 
 select
@@ -77,11 +77,9 @@ left join vk
         and tab1.utm_campaign = vk.utm_campaign
 where tab1.utm_source != 'admitad'
 order by
-    revenue desc nulls last,
-    visitors_count desc,
-    visit_date asc,
-    utm_source asc,
-    utm_medium asc,
-    utm_campaign asc
-limit 15;
-
+    tab1.revenue desc nulls last,
+    tab1.visitors_count desc,
+    tab1.visit_date asc,
+    tab1.utm_source asc,
+    tab1.utm_medium asc,
+    tab1.utm_campaign asc;
