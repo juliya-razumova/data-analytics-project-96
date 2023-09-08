@@ -63,6 +63,5 @@ and medium = ya.utm_medium and campaign = ya.utm_campaign
 left join vk
 on date = vk.campaign_date and source = vk.utm_source
 and medium = vk.utm_medium and campaign = vk.utm_campaign
-order by revenue desc nulls last
-limit 15;
+order by revenue desc nulls last;
 
