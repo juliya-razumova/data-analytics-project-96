@@ -10,14 +10,14 @@ with tab as (
 select
     tab.visitor_id,
     tab.visit_date,
-    source as utm_source,
-    medium as utm_medium,
-    campaign as utm_campaign,
-    lead_id,
-    created_at,
-    amount,
-    closing_reason,
-    status_id
+    sessions.source as utm_source,
+    sessions.medium as utm_medium,
+    sessions.campaign as utm_campaign,
+    leads.lead_id,
+    leads.created_at,
+    leads.amount,
+    leads.closing_reason,
+    leads.status_id
 from tab
 left join sessions
     on
@@ -26,4 +26,8 @@ left join sessions
 left join leads
     on tab.visitor_id = leads.visitor_id
 order by
-    amount desc nulls last, visit_date asc, utm_source asc, utm_medium asc, utm_campaign asc;
+    leads.amount desc nulls last,
+    tab.visit_date asc,
+    utm_source asc,
+    utm_medium asc,
+    utm_campaign asc;
