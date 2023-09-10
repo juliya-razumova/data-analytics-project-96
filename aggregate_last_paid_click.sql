@@ -82,5 +82,3 @@ order by
     d.utm_source, 
     d.utm_medium, 
     d.utm_campaign;
-
-
