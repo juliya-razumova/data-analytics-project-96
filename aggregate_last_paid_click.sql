@@ -1,4 +1,4 @@
-with tab as (
+with last_paid_date as (
     select
         visitor_id,
         max(visit_date) as visit_date
@@ -31,24 +31,24 @@ vk as (
 
 display as (
     select
-        cast(tab.visit_date as date) as visit_date,
+        cast(lpd.visit_date as date) as visit_date,
         s.source as utm_source,
         s.medium as utm_medium,
         s.campaign as utm_campaign,
-        count(distinct tab.visitor_id) as visitors_count,
+        count(distinct lpd.visitor_id) as visitors_count,
         count(l.lead_id) filter (
-            where l.created_at >= tab.visit_date
+            where l.created_at >= lpd.visit_date
         ) as leads_count,
         count(l.lead_id) filter (
-            where l.created_at >= tab.visit_date and l.amount > 0
+            where l.created_at >= lpd.visit_date and l.amount > 0
         ) as purchases_count,
-        sum(l.amount) filter (where created_at >= tab.visit_date) as revenue
-    from tab
+        sum(l.amount) filter (where created_at >= lpd.visit_date) as revenue
+    from last_paid_date lpd
     left join sessions as s
-    on tab.visitor_id = s.visitor_id and tab.visit_date = s.visit_date)
+    on lpd.visitor_id = s.visitor_id and lpd.visit_date = s.visit_date)
     left join leads as l
-    on tab.visitor_id = l.visitor_id
-    group by cast(tab.visit_date as date), s.source, s.medium, s.campaign
+    on lpd.visitor_id = l.visitor_id
+    group by cast(lpd.visit_date as date), s.source, s.medium, s.campaign
 )
 
 select
