@@ -35,7 +35,7 @@ display as (
         s.source as utm_source,
         s.medium as utm_medium,
         s.campaign as utm_campaign,
-        count(tab.visitor_id) as visitors_count,
+        count(distinct tab.visitor_id) as visitors_count,
         count(l.lead_id) filter (
             where created_at >= tab.visit_date
         ) as leads_count,
