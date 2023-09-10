@@ -37,37 +37,50 @@ display as (
         s.campaign as utm_campaign,
         count(distinct tab.visitor_id) as visitors_count,
         count(l.lead_id) filter (
-            where created_at >= tab.visit_date
+            where l.created_at >= tab.visit_date
         ) as leads_count,
         count(l.lead_id) filter (
-            where created_at >= tab.visit_date and l.amount > 0
+            where l.created_at >= tab.visit_date and l.amount > 0
         ) as purchases_count,
-        sum(amount) filter (where created_at >= tab.visit_date) as revenue
+        sum(l.amount) filter (where created_at >= tab.visit_date) as revenue
     from tab
     left join sessions as s
-        using(visitor_id, visit_date)
-left join leads as l
-    using (visitor_id)
-group by cast(tab.visit_date as date), s.source, s.medium, s.campaign
+    on tab.visitor_id = s.visitor_id and tab.visit_date = s.visit_date)
+    left join leads as l
+    on tab.visitor_id = l.visitor_id
+    group by cast(tab.visit_date as date), s.source, s.medium, s.campaign
 )
 
 select
-d.visit_date,
-d.visitors_count,
-d.utm_source,
-d.utm_medium,
-d.utm_campaign,
-case
-    when d.utm_source = 'yandex' then y.total_cost
-    when d.utm_source = 'vk' then v.total_cost
-end as total_cost,
-d.leads_count,
-d.purchases_count,
-d.revenue
+    d.visit_date,
+    d.visitors_count,
+    d.utm_source,
+    d.utm_medium,
+    d.utm_campaign,
+    case
+        when d.utm_source = 'yandex' then y.total_cost
+        when d.utm_source = 'vk' then v.total_cost
+    end as total_cost,
+    d.leads_count,
+    d.purchases_count,
+    d.revenue
 from display as d
 left join ya as y
-using (visit_date, utm_source, utm_medium, utm_campaign)
+    on d.visit_date = y.visit_date
+    and d.utm_source = y.utm_source
+    and d.utm_medium = y.utm_medium
+    and d.utm_campaign = y.utm_campaign
 left join vk as v
-using (visit_date, utm_source, utm_medium, utm_campaign)
-order by d.revenue desc nulls last, d.visit_date, d.visitor_count desc, d.utm_source, d.utm_medium, d.utm_campaign;
+    on d.visit_date = v.visit_date
+    and d.utm_source = v.utm_source
+    and d.utm_medium = v.utm_medium
+    and d.utm_campaign = v.utm_campaign
+order by 
+    d.revenue desc nulls last, 
+    d.visit_date, 
+    d.visitor_count desc, 
+    d.utm_source, 
+    d.utm_medium, 
+    d.utm_campaign;
+
 
