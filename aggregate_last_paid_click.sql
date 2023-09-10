@@ -9,7 +9,7 @@ with tab as (
 
 ya as (
     select
-        cast(campaign_date as date) as campaign_date,
+        cast(campaign_date as date) as visit_date,
         utm_source,
         utm_medium,
         utm_campaign,
@@ -20,7 +20,7 @@ ya as (
 
 vk as (
     select
-        cast(campaign_date as date) as campaign_date,
+        cast(campaign_date as date) as visit_date,
         utm_source,
         utm_medium,
         utm_campaign,
@@ -29,57 +29,45 @@ vk as (
     group by campaign_date, utm_source, utm_medium, utm_campaign
 ),
 
-tab1 as (
+display as (
     select
         cast(tab.visit_date as date) as visit_date,
-        sessions.source as utm_source,
-        sessions.medium as utm_medium,
-        sessions.campaign as utm_campaign,
-        count(distinct tab.visitor_id) as visitors_count,
-        count(leads.lead_id) filter (
-            where leads.created_at >= tab.visit_date
+        s.source as utm_source,
+        s.medium as utm_medium,
+        s.campaign as utm_campaign,
+        count(tab.visitor_id) as visitors_count,
+        count(l.lead_id) filter (
+            where created_at >= tab.visit_date
         ) as leads_count,
-        count(leads.lead_id) filter (where leads.amount > 0) as purchases_count,
-        sum(leads.amount) as revenue
+        count(l.lead_id) filter (
+            where created_at >= tab.visit_date and l.amount > 0
+        ) as purchases_count,
+        sum(amount) filter (where created_at >= tab.visit_date) as revenue
     from tab
-    left join sessions
-        on
-            tab.visitor_id = sessions.visitor_id
-            and tab.visit_date = sessions.visit_date
-    left join leads
-        on tab.visitor_id = leads.visitor_id
-    group by visit_date, utm_source, utm_medium, utm_campaign
+    left join sessions as s
+        using(visitor_id, visit_date)
+left join leads as l
+    using (visitor_id)
+group by cast(tab.visit_date as date), s.source, s.medium, s.campaign
 )
 
 select
-    tab1.visit_date as visit_date,
-    tab1.visitors_count,
-    tab1.utm_source,
-    tab1.utm_medium,
-    tab1.utm_campaign,
-    tab1.leads_count,
-    tab1.purchases_count,
-    tab1.revenue,
-    case
-        when tab1.utm_source = 'yandex' then ya.total_cost
-        when tab1.utm_source = 'vk' then vk.total_cost
-    end as total_cost
-from tab1
-left join ya
-    on
-        tab1.visit_date = ya.campaign_date and tab1.utm_source = ya.utm_source
-        and tab1.utm_medium = ya.utm_medium
-        and tab1.utm_campaign = ya.utm_campaign
-left join vk
-    on
-        tab1.visit_date = vk.campaign_date and tab1.utm_source = vk.utm_source
-        and tab1.utm_medium = vk.utm_medium
-        and tab1.utm_campaign = vk.utm_campaign
-where tab1.utm_source != 'admitad'
-order by
-    tab1.revenue desc nulls last,
-    tab1.visitors_count desc,
-    tab1.visit_date asc,
-    tab1.utm_source asc,
-    tab1.utm_medium asc,
-    tab1.utm_campaign asc;
+d.visit_date,
+d.visitors_count,
+d.utm_source,
+d.utm_medium,
+d.utm_campaign,
+case
+    when d.utm_source = 'yandex' then y.total_cost
+    when d.utm_source = 'vk' then v.total_cost
+end as total_cost,
+d.leads_count,
+d.purchases_count,
+d.revenue
+from display as d
+left join ya as y
+using (visit_date, utm_source, utm_medium, utm_campaign)
+left join vk as v
+using (visit_date, utm_source, utm_medium, utm_campaign)
+order by d.revenue desc nulls last, d.visit_date, d.visitor_count desc, d.utm_source, d.utm_medium, d.utm_campaign;
+
