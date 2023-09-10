@@ -1,8 +1,5 @@
-with
-tab as (
-    select
-        visitor_id,
-        max(visit_date) as visit_date
+with tab as (
+    select visitor_id, max(visit_date) as visit_date
     from sessions
     where campaign is not null
     group by visitor_id
