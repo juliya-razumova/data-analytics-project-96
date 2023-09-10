@@ -5,9 +5,7 @@ with last_paid_date as (
     from sessions
     where campaign is not null
     group by visitor_id
-),
-
-ya as (
+), ya as (
     select
         cast(campaign_date as date) as visit_date,
         utm_source,
@@ -16,9 +14,7 @@ ya as (
         sum(daily_spent) as total_cost
     from ya_ads
     group by campaign_date, utm_source, utm_medium, utm_campaign
-),
-
-vk as (
+), vk as (
     select
         cast(campaign_date as date) as visit_date,
         utm_source,
@@ -27,9 +23,7 @@ vk as (
         sum(daily_spent) as total_cost
     from vk_ads
     group by campaign_date, utm_source, utm_medium, utm_campaign
-),
-
-display as (
+), display as (
     select
         cast(lpd.visit_date as date) as visit_date,
         s.source as utm_source,
