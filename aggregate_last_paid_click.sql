@@ -6,6 +6,7 @@ with tab as (
     where campaign is not null
     group by visitor_id
 ),
+
     ya as (
     select
         cast(campaign_date as date) as visit_date,
@@ -16,6 +17,7 @@ with tab as (
     from ya_ads
     group by campaign_date, utm_source, utm_medium, utm_campaign
 ),
+
     vk as (
     select
         cast(campaign_date as date) as visit_date,
@@ -26,6 +28,7 @@ with tab as (
     from vk_ads
     group by campaign_date, utm_source, utm_medium, utm_campaign
 ),
+
     display as (
     select
         cast(tab.visit_date as date) as visit_date,
