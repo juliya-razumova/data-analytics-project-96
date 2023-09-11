@@ -66,15 +66,15 @@ select
 from display
 left join ya
     on
-        display.visit_date = ya.visit_date
-        display.utm_source = ya.utm_source
-        display.utm_medium = ya.utm_medium
+        display.visit_date = ya.visit_date and
+        display.utm_source = ya.utm_source and
+        display.utm_medium = ya.utm_medium and
         display.utm_campaign = ya.utm_campaign
 left join vk
     on
-        display.visit_date = vk.visit_date
-        display.utm_source = vk.utm_source
-        display.utm_medium = vk.utm_medium
+        display.visit_date = vk.visit_date and
+        display.utm_source = vk.utm_source and
+        display.utm_medium = vk.utm_medium and
         display.utm_campaign = vk.utm_campaign
 order by 
     display.revenue desc nulls last, 
