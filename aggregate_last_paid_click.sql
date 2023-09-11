@@ -39,7 +39,7 @@ with last_paid_date as (
         sum(l.amount) filter (where created_at >= lpd.visit_date) as revenue
     from last_paid_date lpd
     left join sessions as s
-    on lpd.visitor_id = s.visitor_id and lpd.visit_date = s.visit_date)
+    on lpd.visitor_id = s.visitor_id and lpd.visit_date = s.visit_date
     left join leads as l
     on lpd.visitor_id = l.visitor_id
     group by cast(lpd.visit_date as date), s.source, s.medium, s.campaign
@@ -72,7 +72,7 @@ left join vk as v
 order by 
     d.revenue desc nulls last, 
     d.visit_date, 
-    d.visitor_count desc, 
+    d.visitors_count desc, 
     d.utm_source, 
     d.utm_medium, 
     d.utm_campaign;
