@@ -5,7 +5,9 @@ with last_paid_date as (
     from sessions
     where campaign is not null
     group by visitor_id
-), ya as (
+), 
+    
+    ya as (
     select
         cast(campaign_date as date) as visit_date,
         utm_source,
@@ -14,7 +16,9 @@ with last_paid_date as (
         sum(daily_spent) as total_cost
     from ya_ads
     group by campaign_date, utm_source, utm_medium, utm_campaign
-), vk as (
+), 
+    
+    vk as (
     select
         cast(campaign_date as date) as visit_date,
         utm_source,
@@ -23,7 +27,9 @@ with last_paid_date as (
         sum(daily_spent) as total_cost
     from vk_ads
     group by campaign_date, utm_source, utm_medium, utm_campaign
-), display as (
+), 
+    
+    display as (
     select
         cast(lpd.visit_date as date) as visit_date,
         s.source as utm_source,
@@ -36,11 +42,11 @@ with last_paid_date as (
         count(l.lead_id) filter (
             where l.created_at >= lpd.visit_date and l.amount > 0
         ) as purchases_count,
-        sum(l.amount) filter (where created_at >= lpd.visit_date) as revenue
+        sum(l.amount) filter (where l.created_at >= lpd.visit_date) as revenue
     from last_paid_date lpd
-    left join sessions as s
+    left join sessions s
     on lpd.visitor_id = s.visitor_id and lpd.visit_date = s.visit_date
-    left join leads as l
+    left join leads l
     on lpd.visitor_id = l.visitor_id
     group by cast(lpd.visit_date as date), s.source, s.medium, s.campaign
 )
@@ -58,8 +64,8 @@ select
     d.leads_count,
     d.purchases_count,
     d.revenue
-from display as d
-left join ya as y
+from display d
+left join ya y
     on d.visit_date = y.visit_date
     and d.utm_source = y.utm_source
     and d.utm_medium = y.utm_medium
