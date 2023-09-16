@@ -9,10 +9,10 @@ with tab as (
         leads.created_at,
         leads.amount,
         row_number()
-            over (
-                partition by sessions.visitor_id
-                order by sessions.visit_date desc
-            )
+        over (
+            partition by sessions.visitor_id
+            order by sessions.visit_date desc
+        )
         as rn
     from sessions
     left join leads
@@ -57,7 +57,7 @@ display as (
         ) as purchases_count,
         sum(tab.amount) as revenue
     from tab
-    where rn = 1
+    where tab.rn = 1
     group by
         cast(tab.visit_date as date),
         tab.utm_source,
