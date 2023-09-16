@@ -15,13 +15,13 @@ with ads_visit as (
 
 tab as (
     select
-        ads_visit.visitor_id,
         case
-	        when
-	            ads_visit.ads_date is null
-	            then cast (ads_visit.organic_date as date)
-	        else cast(ads_visit.ads_date as date)
+	    when
+	        ads_visit.ads_date is null
+	        then cast(ads_visit.organic_date as date)
+	    else cast(ads_visit.ads_date as date)
         end as visit_date,
+	ads_visit.visitor_id,
         sessions.source as utm_source,
         sessions.medium as utm_medium,
         sessions.campaign as utm_campaign,
@@ -30,13 +30,13 @@ tab as (
         leads.amount
     from ads_visit
     left join sessions
-    on
-        sessions.visitor_id = ads_visit.visitor_id
-        and ads_visit.ads_date = sessions.visit_date
+        on
+            sessions.visitor_id = ads_visit.visitor_id
+            and ads_visit.ads_date = sessions.visit_date
     left join leads
-    on
-        ads_visit.visitor_id = leads.visitor_id
-        and ads_visit.ads_date < leads.created_at
+        on
+            ads_visit.visitor_id = leads.visitor_id
+            and ads_visit.ads_date < leads.created_at
 )
 
 select
@@ -59,7 +59,7 @@ group by
 order by revenue desc nulls last;
 
 
-   /*РАСЧЁТ КОНВЕРСИЙ ПО КУРСАМ ШКОЛЫ*/
+/*РАСЧЁТ КОНВЕРСИЙ ПО КУРСАМ ШКОЛЫ*/
 
 with ads_visit as (
     select
@@ -78,10 +78,10 @@ tab as (
     select
         ads_visit.visitor_id,
         case
-	        when
-	            ads_visit.ads_date is null
-	            then cast (ads_visit.organic_date as date)
-	        else cast(ads_visit.ads_date as date)
+	    when
+	        ads_visit.ads_date is null
+	        then cast(ads_visit.organic_date as date)
+            else cast(ads_visit.ads_date as date)
         end as visit_date,
         sessions.source as utm_source,
         sessions.medium as utm_medium,
@@ -95,9 +95,9 @@ tab as (
         sessions.visitor_id = ads_visit.visitor_id
         and ads_visit.ads_date = sessions.visit_date
     left join leads
-    on
-        ads_visit.visitor_id = leads.visitor_id
-        and ads_visit.ads_date < leads.created_at
+        on
+            ads_visit.visitor_id = leads.visitor_id
+            and ads_visit.ads_date < leads.created_at
 )
 
 select
@@ -137,13 +137,13 @@ with ads_visit as (
 
 tab as (
     select
-        ads_visit.visitor_id,
         case
-	        when
-	            ads_visit.ads_date is null
-	            then cast (ads_visit.organic_date as date)
-	        else cast(ads_visit.ads_date as date)
+	    when
+	        ads_visit.ads_date is null
+	        then cast(ads_visit.organic_date as date)
+	    else cast(ads_visit.ads_date as date)
         end as visit_date,
+	ads_visit.visitor_id,
         sessions.source as utm_source,
         sessions.medium as utm_medium,
         sessions.campaign as utm_campaign,
@@ -152,13 +152,13 @@ tab as (
         leads.amount
     from ads_visit
     left join sessions
-    on
-        sessions.visitor_id = ads_visit.visitor_id
-        and ads_visit.ads_date = sessions.visit_date
+        on
+            sessions.visitor_id = ads_visit.visitor_id
+            and ads_visit.ads_date = sessions.visit_date
     left join leads
-    on
-        ads_visit.visitor_id = leads.visitor_id
-        and ads_visit.ads_date < leads.created_at
+        on
+            ads_visit.visitor_id = leads.visitor_id
+            and ads_visit.ads_date < leads.created_at
 )
 
 select
@@ -227,19 +227,20 @@ with tab as (
         leads.created_at,
         leads.amount,
         row_number()
-            over (
-                partition by sessions.visitor_id order by sessions.visit_date desc
-            )
+        over (
+            partition by sessions.visitor_id
+	    order by sessions.visit_date desc
+        )
         as rn
     from sessions
     left join leads
-    on
-        sessions.visitor_id = leads.visitor_id
-        and sessions.visit_date <= leads.created_at
+        on
+            sessions.visitor_id = leads.visitor_id
+            and sessions.visit_date <= leads.created_at
     where sessions.source in ('yandex', 'vk')
- ),
- 
- conv as (
+),
+
+conv as (
     select
         tab.utm_source,
         tab.utm_campaign,
@@ -248,7 +249,7 @@ with tab as (
         count(tab.lead_id) filter (where tab.amount > 0) as purchases_count,
         sum(tab.amount) as revenue
     from tab
-    where rn = 1
+    where tab.rn = 1
     group by tab.utm_source, tab.utm_campaign
 ),
 
@@ -280,7 +281,7 @@ ads as (
         utm_campaign
 )
 
-select 
+select
     conv.utm_source,
     conv.utm_campaign,
     conv.visitors_count,
@@ -288,29 +289,29 @@ select
     conv.purchases_count,
     conv.revenue,
     ads.total_cost,
-    case 
-	    when conv.visitors_count > 0
+    case
+	when conv.visitors_count > 0
 	    then round(100.0 * conv.leads_count / conv.visitors_count, 2)
     end as lead_conv,
-    case 
-	    when conv.leads_count > 0
-	    then round(100.0 * conv.purchases_count / conv.leads_count, 2) 
+    case
+	when conv.leads_count > 0
+	    then round(100.0 * conv.purchases_count / conv.leads_count, 2)
     end as purchases_conv,
     round(ads.total_cost / conv.visitors_count, 2) as cpu,
-    case 
+    case
 	    when conv.leads_count > 0
 	    then round(ads.total_cost / conv.leads_count, 2)
     end as cpl,
-    case 
-	    when conv.purchases_count > 0 
+    case
+	    when conv.purchases_count > 0
 	    then round(ads.total_cost / conv.purchases_count, 2)
     end as cppu,
     round(100.0 * (conv.revenue - ads.total_cost) / ads.total_cost, 2) as roi
-from conv
-right join ads
-on 
-    conv.utm_source = ads.utm_source
-    and conv.utm_campaign = ads.utm_campaign;
+from ads
+left join conv
+    on
+        conv.utm_source = ads.utm_source
+        and conv.utm_campaign = ads.utm_campaign;
 
 
 /*ЗАКРЫТИЯ 90% ЛИДОВ ПОСЛЕ ЗАПУСКА РЕКЛАМНОЙ КАМПАНИИ*/
@@ -323,10 +324,10 @@ with tab as (
         leads.lead_id,
         cast(leads.created_at as date) as created_at,
         row_number()
-            over (
-                partition by sessions.visitor_id
-                order by sessions.visit_date desc
-            )
+        over (
+	    partition by sessions.visitor_id
+            order by sessions.visit_date desc
+        )
         as rn
     from sessions
     left join leads
@@ -369,19 +370,20 @@ with tab as (
         leads.created_at,
         leads.amount,
         row_number()
-            over (
-                partition by sessions.visitor_id order by sessions.visit_date desc
-            )
+        over (
+            partition by sessions.visitor_id
+	    order by sessions.visit_date desc
+	)
         as rn
     from sessions
     left join leads
-    on
-        sessions.visitor_id = leads.visitor_id
-        and sessions.visit_date <= leads.created_at
+        on
+            sessions.visitor_id = leads.visitor_id
+            and sessions.visit_date <= leads.created_at
     where sessions.source in ('yandex', 'vk')
- ),
- 
- conv as (
+),
+
+conv as (
     select
         tab.utm_source,
         tab.utm_campaign,
@@ -390,7 +392,7 @@ with tab as (
         count(tab.lead_id) filter (where tab.amount > 0) as purchases_count,
         sum(tab.amount) as revenue
     from tab
-    where rn = 1
+    where tab.rn = 1
     group by tab.utm_source, tab.utm_campaign
 ),
 
@@ -425,10 +427,10 @@ select distinct
     conv.purchases_count,
     conv.revenue,
     ads.total_cost
-    from conv
+from conv
 left join ads
-on 
-    conv.utm_source = ads.utm_source
-    and conv.utm_campaign = ads.utm_campaign
+    on 
+        conv.utm_source = ads.utm_source
+        and conv.utm_campaign = ads.utm_campaign
 where conv.revenue > 0
-order by utm_campaign desc, conv.revenue desc;
+order by conv.utm_campaign desc, conv.revenue desc;
