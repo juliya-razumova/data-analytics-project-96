@@ -22,11 +22,11 @@ tab as (
         leads.lead_id,
         leads.created_at,
         leads.amount,
-	case
+        case
             when ads_visit.ads_date is null
                 then cast(ads_visit.organic_date as date)
             else cast(ads_visit.ads_date as date)
-	end as visit_date
+        end as visit_date
     from ads_visit
     left join sessions
         on
@@ -75,14 +75,14 @@ with ads_visit as (
 
 tab as (
     select
-	ads_visit.visitor_id,
+        ads_visit.visitor_id,
         sessions.source as utm_source,
         sessions.medium as utm_medium,
         sessions.campaign as utm_campaign,
         leads.lead_id,
         leads.created_at,
         leads.amount,
-	case
+        case
             when ads_visit.ads_date is null
                 then cast(ads_visit.organic_date as date)
             else cast(ads_visit.ads_date as date)
@@ -142,7 +142,7 @@ tab as (
         leads.lead_id,
         leads.created_at,
         leads.amount,
-	case
+        case
             when ads_visit.ads_date is null
                 then cast(ads_visit.organic_date as date)
             else cast(ads_visit.ads_date as date)
