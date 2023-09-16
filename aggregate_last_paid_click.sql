@@ -16,6 +16,28 @@ with tab as (
     where sessions.medium != 'organic'
 ),
 
+    ya as (
+     select
+        cast(campaign_date as date) as visit_date,
+        utm_source,
+        utm_medium,
+        utm_campaign,
+        sum(daily_spent) as total_cost
+    from ya_ads
+    group by campaign_date, utm_source, utm_medium, utm_campaign
+),
+
+    vk as (
+    select
+        cast(campaign_date as date) as visit_date,
+        utm_source,
+        utm_medium,
+        utm_campaign,
+        sum(daily_spent) as total_cost
+    from vk_ads
+    group by campaign_date, utm_source, utm_medium, utm_campaign
+)
+
 display as (
     select
         cast(tab.visit_date as date) as visit_date,
@@ -46,40 +68,22 @@ select
     display.purchases_count,
     display.revenue
 from display
-left join (
-    select
-        cast(campaign_date as date) as visit_date,
-        utm_source,
-        utm_medium,
-        utm_campaign,
-        sum(daily_spent) as total_cost
-    from ya_ads
-    group by campaign_date, utm_source, utm_medium, utm_campaign
-) ya
-on
-    display.visit_date = ya.visit_date
-    and display.utm_source = ya.utm_source
-    and display.utm_medium = ya.utm_medium
-    and display.utm_campaign = ya.utm_campaign
-left join (
-    select
-        cast(campaign_date as date) as visit_date,
-        utm_source,
-        utm_medium,
-        utm_campaign,
-        sum(daily_spent) as total_cost
-    from vk_ads
-    group by campaign_date, utm_source, utm_medium, utm_campaign
-) vk
-on
-    display.visit_date = vk.visit_date
-    and display.utm_source = vk.utm_source
-    and display.utm_medium = vk.utm_medium
-    and display.utm_campaign = vk.utm_campaign
-order by 
-    display.revenue desc nulls last, 
-    display.visit_date, 
-    display.visitors_count desc, 
-    display.utm_source, 
-    display.utm_medium, 
-    display.utm_campaign;
+    left join ya
+    on
+        display.visit_date = ya.visit_date
+        and display.utm_source = ya.utm_source
+        and display.utm_medium = ya.utm_medium
+        and display.utm_campaign = ya.utm_campaign
+    left join vk
+    on
+        display.visit_date = vk.visit_date
+        and display.utm_source = vk.utm_source
+        and display.utm_medium = vk.utm_medium
+        and display.utm_campaign = vk.utm_campaign
+    order by 
+        display.revenue desc nulls last, 
+        display.visit_date, 
+        display.visitors_count desc, 
+        display.utm_source, 
+        display.utm_medium, 
+        display.utm_campaign;
