@@ -16,12 +16,11 @@ with ads_visit as (
 tab as (
     select
         case
-	    when
-	        ads_visit.ads_date is null
-	        then cast(ads_visit.organic_date as date)
-	    else cast(ads_visit.ads_date as date)
+            when ads_visit.ads_date is null
+                then cast(ads_visit.organic_date as date)
+            else cast(ads_visit.ads_date as date)
         end as visit_date,
-	ads_visit.visitor_id,
+        ads_visit.visitor_id,
         sessions.source as utm_source,
         sessions.medium as utm_medium,
         sessions.campaign as utm_campaign,
@@ -76,13 +75,12 @@ with ads_visit as (
 
 tab as (
     select
-        ads_visit.visitor_id,
         case
-	    when
-	        ads_visit.ads_date is null
-	        then cast(ads_visit.organic_date as date)
+            when ads_visit.ads_date is null
+                then cast(ads_visit.organic_date as date)
             else cast(ads_visit.ads_date as date)
         end as visit_date,
+	ads_visit.visitor_id,
         sessions.source as utm_source,
         sessions.medium as utm_medium,
         sessions.campaign as utm_campaign,
@@ -91,9 +89,9 @@ tab as (
         leads.amount
     from ads_visit
     left join sessions
-    on
-        sessions.visitor_id = ads_visit.visitor_id
-        and ads_visit.ads_date = sessions.visit_date
+        on
+            sessions.visitor_id = ads_visit.visitor_id
+            and ads_visit.ads_date = sessions.visit_date
     left join leads
         on
             ads_visit.visitor_id = leads.visitor_id
@@ -138,9 +136,8 @@ with ads_visit as (
 tab as (
     select
         case
-	    when
-	        ads_visit.ads_date is null
-	        then cast(ads_visit.organic_date as date)
+            when ads_visit.ads_date is null
+                then cast(ads_visit.organic_date as date)
 	    else cast(ads_visit.ads_date as date)
         end as visit_date,
 	ads_visit.visitor_id,
@@ -229,7 +226,7 @@ with tab as (
         row_number()
         over (
             partition by sessions.visitor_id
-	    order by sessions.visit_date desc
+            order by sessions.visit_date desc
         )
         as rn
     from sessions
@@ -290,21 +287,21 @@ select
     conv.revenue,
     ads.total_cost,
     case
-	when conv.visitors_count > 0
-	    then round(100.0 * conv.leads_count / conv.visitors_count, 2)
+        when conv.visitors_count > 0
+            then round(100.0 * conv.leads_count / conv.visitors_count, 2)
     end as lead_conv,
     case
-	when conv.leads_count > 0
-	    then round(100.0 * conv.purchases_count / conv.leads_count, 2)
+        when conv.leads_count > 0
+            then round(100.0 * conv.purchases_count / conv.leads_count, 2)
     end as purchases_conv,
     round(ads.total_cost / conv.visitors_count, 2) as cpu,
     case
-	    when conv.leads_count > 0
-	    then round(ads.total_cost / conv.leads_count, 2)
+        when conv.leads_count > 0
+            then round(ads.total_cost / conv.leads_count, 2)
     end as cpl,
     case
-	    when conv.purchases_count > 0
-	    then round(ads.total_cost / conv.purchases_count, 2)
+        when conv.purchases_count > 0
+            then round(ads.total_cost / conv.purchases_count, 2)
     end as cppu,
     round(100.0 * (conv.revenue - ads.total_cost) / ads.total_cost, 2) as roi
 from ads
@@ -325,7 +322,7 @@ with tab as (
         cast(leads.created_at as date) as created_at,
         row_number()
         over (
-	    partition by sessions.visitor_id
+            partition by sessions.visitor_id
             order by sessions.visit_date desc
         )
         as rn
@@ -372,8 +369,8 @@ with tab as (
         row_number()
         over (
             partition by sessions.visitor_id
-	    order by sessions.visit_date desc
-	)
+            order by sessions.visit_date desc
+        )
         as rn
     from sessions
     left join leads
@@ -429,7 +426,7 @@ select distinct
     ads.total_cost
 from conv
 left join ads
-    on 
+    on
         conv.utm_source = ads.utm_source
         and conv.utm_campaign = ads.utm_campaign
 where conv.revenue > 0
