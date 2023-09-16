@@ -22,7 +22,7 @@ with tab as (
     where sessions.medium != 'organic'
 ),
 
-ya as (
+ads as (
     select
         cast(campaign_date as date) as visit_date,
         utm_source,
@@ -30,10 +30,12 @@ ya as (
         utm_campaign,
         sum(daily_spent) as total_cost
     from ya_ads
-    group by visit_date, utm_source, utm_medium, utm_campaign
-),
-
-vk as (
+    group by
+        cast(campaign_date as date) as visit_date,
+        utm_source,
+        utm_medium,
+        utm_campaign
+    union
     select
         cast(campaign_date as date) as visit_date,
         utm_source,
@@ -41,7 +43,11 @@ vk as (
         utm_campaign,
         sum(daily_spent) as total_cost
     from vk_ads
-    group by visit_date, utm_source, utm_medium, utm_campaign
+    group by
+        cast(campaign_date as date) as visit_date,
+        utm_source,
+        utm_medium,
+        utm_campaign
 ),
 
 display as (
@@ -57,7 +63,7 @@ display as (
         ) as purchases_count,
         sum(tab.amount) as revenue
     from tab
-    where rn = 1
+    where tab.rn = 1
     group by
         cast(tab.visit_date as date),
         tab.utm_source,
@@ -74,23 +80,14 @@ select
     display.leads_count,
     display.purchases_count,
     display.revenue,
-    case
-        when display.utm_source = 'yandex' then ya.total_cost
-        when display.utm_source = 'vk' then vk.total_cost
-    end as total_cost
+    ads. total_cost
 from display
-left join ya
+left join ads
     on
-        display.visit_date = ya.visit_date
-        and display.utm_source = ya.utm_source
-        and display.utm_medium = ya.utm_medium
-        and display.utm_campaign = ya.utm_campaign
-left join vk
-    on
-        display.visit_date = vk.visit_date
-        and display.utm_source = vk.utm_source
-        and display.utm_medium = vk.utm_medium
-        and display.utm_campaign = vk.utm_campaign
+        display.visit_date = ads.visit_date
+        and display.utm_source = ads.utm_source
+        and display.utm_medium = ads.utm_medium
+        and display.utm_campaign = ads.utm_campaign
 order by
     display.revenue desc nulls last,
     display.visit_date asc,
