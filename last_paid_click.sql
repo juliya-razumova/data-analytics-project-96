@@ -1,10 +1,25 @@
 with tab as (
     select
-        visitor_id,
-        max(visit_date) as visit_date
+        sessions.visitor_id,
+        sessions.visit_date,
+        sessions.source as utm_source,
+        sessions.medium as utm_medium,
+        sessions.campaign as utm_campaign,
+        leads.lead_id,
+        leads.created_at,
+        leads.amount,
+        row_number()
+        over (
+            partition by sessions.visitor_id
+            order by sessions.visit_date desc
+        )
+        as rn
     from sessions
-    where campaign is not null
-    group by visitor_id
+    left join leads
+        on
+            sessions.visitor_id = leads.visitor_id
+            and sessions.visit_date < leads.created_at
+    where sessions.medium != 'organic'
 )
 
 select
