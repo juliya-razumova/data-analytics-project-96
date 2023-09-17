@@ -38,8 +38,8 @@ select
 from tab
 where tab.rn = 1
 order by
-    leads.amount desc nulls last,
+    tab.amount desc nulls last,
     tab.visit_date asc,
-    utm_source asc,
-    utm_medium asc,
-    utm_campaign asc;
+    tab.utm_source asc,
+    tab.utm_medium asc,
+    tab.utm_campaign asc;
