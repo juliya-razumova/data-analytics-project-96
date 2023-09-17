@@ -8,6 +8,8 @@ with tab as (
         leads.lead_id,
         leads.created_at,
         leads.amount,
+        leads.closing_reason,
+        leads.status_id,
         row_number()
         over (
             partition by sessions.visitor_id
@@ -25,21 +27,16 @@ with tab as (
 select
     tab.visitor_id,
     tab.visit_date,
-    sessions.source as utm_source,
-    sessions.medium as utm_medium,
-    sessions.campaign as utm_campaign,
-    leads.lead_id,
-    leads.created_at,
-    leads.amount,
-    leads.closing_reason,
-    leads.status_id
+    tab.utm_source,
+    tab.utm_medium,
+    tab.utm_campaign,
+    tab.lead_id,
+    tab.created_at,
+    tab.amount,
+    tab.closing_reason,
+    tab.status_id
 from tab
-left join sessions
-    on
-        tab.visitor_id = sessions.visitor_id
-        and tab.visit_date = sessions.visit_date
-left join leads
-    on tab.visitor_id = leads.visitor_id
+where tab.rn = 1
 order by
     leads.amount desc nulls last,
     tab.visit_date asc,
